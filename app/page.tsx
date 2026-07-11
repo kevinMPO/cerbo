@@ -21,6 +21,7 @@ import { Waitlist } from "@/components/Waitlist";
 import { ConsolePreview } from "@/components/marketing/ConsolePreview";
 import { DemoVideo } from "@/components/marketing/DemoVideo";
 import { ExplainButton } from "@/components/marketing/ExplainButton";
+import { PitchModal } from "@/components/marketing/PitchModal";
 import { useLang, T } from "@/lib/i18n";
 
 const HOW_ICONS = [<Radio key="a" className="h-4 w-4" />, <Mic key="b" className="h-4 w-4" />, <GitBranch key="c" className="h-4 w-4" />];
@@ -64,6 +65,7 @@ export default function Landing() {
                   {c.hero.ctaPrimary} <ArrowRight className="h-4 w-4" />
                 </Button>
               </a>
+              <PitchModal />
               <ExplainButton />
               <Link href="/login" className="text-[13px] text-muted underline-offset-4 hover:text-offwhite hover:underline">
                 {c.hero.ctaSecondary}

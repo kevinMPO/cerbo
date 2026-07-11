@@ -32,8 +32,10 @@ export default function ProofPage() {
 
   const ready = live.ready;
   const totalCost = (receipts ?? []).reduce((s, r) => s + (r.costUsd || 0), 0);
+  // Count only the 4 scored power-ups (OpenAI is the engine, not scored).
+  const scoredKeys = new Set(POWERUPS.map((p) => p.key));
   const witnessed = (powerups ?? []).filter(
-    (p) => p.status === "witnessed"
+    (p) => scoredKeys.has(p.key) && p.status === "witnessed"
   ).length;
 
   return (

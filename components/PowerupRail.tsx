@@ -11,12 +11,13 @@ export type PowerupRow = {
   lastEventAt?: number;
 };
 
+// The 4 scored partner power-ups. OpenAI is the reasoning ENGINE, not a scored
+// power-up (the provider isn't scored) — it lives in the agent graph, not here.
 export const POWERUPS: { key: string; label: string; role: string }[] = [
   { key: "linkup", label: "Linkup", role: "Enrichissement firmographique live" },
-  { key: "elevenlabs", label: "ElevenLabs", role: "Memo audio business-value" },
   { key: "wispr", label: "Wispr Flow", role: "Dictée vocale de la correction" },
-  { key: "openai", label: "OpenAI", role: "Inférence des règles" },
-  { key: "d1", label: "Cloudflare D1", role: "State + live proof" },
+  { key: "elevenlabs", label: "ElevenLabs", role: "Memo audio business-value" },
+  { key: "d1", label: "Cloudflare D1", role: "État + preuve live" },
 ];
 
 function toneFor(status: string) {

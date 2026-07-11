@@ -14,4 +14,7 @@ export interface Env {
   LINKUP_API_KEY?: string;
   ELEVENLABS_API_KEY?: string;
   ELEVENLABS_VOICE_ID?: string;
+  // Waitlist email notifications (Resend).
+  RESEND_API_KEY?: string;
+  NOTIFY_EMAIL?: string;
 }

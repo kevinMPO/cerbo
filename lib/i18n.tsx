@@ -42,7 +42,7 @@ export const T = {
       subtitle:
         "Your best rules live in your team's heads — so your AI keeps missing the leads that matter. CERBO learns those rules, qualifies with a cited reason, and turns one spoken correction into a permanent skill. Teach it once, never twice. The service becomes software that improves itself.",
       microproof:
-        "No FDE. No redeploy. Full agent governance — every decision traces to a receipt.",
+        "The Forward Deployed Engineer you don't have to hire. No redeploy. Full agent governance — every decision traces to a receipt.",
       ctaPrimary: "Join the waitlist",
       ctaSecondary: "or explore the live console",
       explain: "Listen: what is CERBO?",
@@ -129,7 +129,7 @@ export const T = {
       subtitle:
         "Vos meilleures règles vivent dans la tête de vos équipes — alors votre IA rate les leads qui comptent. CERBO apprend ces règles, qualifie en citant sa raison, et transforme une correction dictée en compétence permanente. On corrige une fois, jamais deux. Le service devient un logiciel qui s'améliore tout seul.",
       microproof:
-        "Pas de FDE. Pas de redéploiement. Chaque décision remonte à une preuve.",
+        "Le Forward Deployed Engineer que vous n'avez pas à recruter. Pas de redéploiement. Chaque décision remonte à une preuve.",
       ctaPrimary: "Rejoindre la waitlist",
       ctaSecondary: "ou explorer la console live",
       explain: "Écouter : c'est quoi CERBO ?",

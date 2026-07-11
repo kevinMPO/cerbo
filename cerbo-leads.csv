@@ -1,0 +1,22 @@
+extId,company,domain,industry,sizeBand,region,signal
+L-001,Northwind Data,northwind-data.io,Data Infra SaaS,50-200,UK,Hiring 4 AEs; Series B 8mo ago
+L-002,Volta Metrics,voltametrics.com,Analytics SaaS,200-500,US,New VP Sales; expanding EMEA
+L-003,Rune Logistics,rene-logistics.fr,Logistics,500-1000,EU,RFP for ops platform
+L-004,Pebble Health,pebblehealth.io,HealthTech SaaS,50-200,EU,Migrating off spreadsheets
+L-005,Kestrel Security,kestrelsec.com,Security SaaS,200-500,US,Series C 3mo ago
+L-006,Maple Ledger,mapleledger.ca,FinTech SaaS,50-200,US,Hiring RevOps lead
+L-007,Tinos Freight,tinosfreight.gr,Logistics,20-50,EU,No recent signal
+L-008,Cobalt Studio,cobalt.studio,Design Agency,10-50,EU,Website refresh only
+L-009,Aster Robotics,asterrobotics.de,Robotics,200-500,EU,New funding; scaling GTM
+L-010,Lumen Payroll,lumenpayroll.com,HR SaaS,50-200,UK,Replacing legacy vendor
+L-011,Drift & Co,driftandco.com,Marketing Agency,10-50,US,Founder inbound; no budget stated
+L-012,Halcyon Grid,halcyongrid.io,Energy SaaS,200-500,EU,Grid expansion; hiring
+L-013,Baral Textiles,baraltextiles.in,Manufacturing,1000+,APAC,No SaaS intent
+L-014,Perch Analytics,perch.dev,Analytics SaaS,50-200,US,Trial of competitor tool
+L-015,Quill Legal,quill-legal.co.uk,LegalTech SaaS,50-200,UK,New GC; process overhaul
+L-016,Nova Freight,novafreight.io,Logistics SaaS,200-500,US,Series B; hiring AEs
+L-017,Sable Retail,sableretail.com,Retail,500-1000,US,Seasonal only
+L-018,Fjord Systems,fjordsystems.no,IoT SaaS,50-200,EU,Expansion to UK market
+L-019,Cirrus Mail,cirrusmail.com,DevTools SaaS,20-50,US,Open-source traction
+L-020,Onda Fitness,ondafitness.es,Consumer,10-50,EU,B2C; no fit
+L-021,Atelier Nord,ateliernord.co,Revenue Advisory,1-10,EU,Founder ex-VP Revenue (Series-C SaaS); explicit buying signal: booked scoping call; stated budget; evaluating now

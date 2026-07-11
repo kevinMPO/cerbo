@@ -1,0 +1,29 @@
+# ---- SECRETS: never commit ----
+.env
+.env.*
+!.env.example
+
+# ---- Cloudflare / Wrangler ----
+.wrangler/
+.dev.vars
+out/
+
+# ---- Node / Next ----
+node_modules/
+.next/
+build/
+dist/
+
+# ---- Misc ----
+.DS_Store
+*.log
+npm-debug.log*
+.vercel
+coverage/
+*.tsbuildinfo
+next-env.d.ts
+
+# ---- Hermes / agent artifacts that may contain keys ----
+.hermes/
+*.session
+receipts/*.local.json

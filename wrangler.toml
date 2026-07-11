@@ -1,0 +1,12 @@
+name = "cerbo"
+compatibility_date = "2024-11-01"
+compatibility_flags = ["nodejs_compat"]
+pages_build_output_dir = "out"
+
+# D1 database binding. For local dev, Wrangler simulates this (miniflare).
+# For remote deploy: run `wrangler d1 create cerbo` and paste the returned
+# database_id below, then `npm run db:remote` to apply the schema.
+[[d1_databases]]
+binding = "DB"
+database_name = "cerbo"
+database_id = "c9412579-f0a5-4cc6-bee0-15c9f9813e33"

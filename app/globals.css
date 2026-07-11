@@ -1,0 +1,121 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: dark;
+    /* System stacks — no network font fetch. SF Pro on macOS, SF Mono for mono. */
+    --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter",
+      "Segoe UI", system-ui, sans-serif;
+    --font-mono: "SF Mono", ui-monospace, "JetBrains Mono", "Menlo",
+      "Roboto Mono", monospace;
+  }
+
+  html,
+  body {
+    background-color: #08080a;
+    color: #ededf0;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  ::selection {
+    background: rgba(94, 230, 208, 0.22);
+    color: #ffffff;
+  }
+
+  /* Every number, version, timestamp and id renders mono + tabular. */
+  .num {
+    font-family: var(--font-mono), ui-monospace, monospace;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 999px;
+    border: 2px solid #08080a;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.16);
+  }
+}
+
+@layer components {
+  /* unframe-style radial teal glow behind the hero / key surfaces */
+  .glow {
+    position: relative;
+  }
+  .glow::before {
+    content: "";
+    position: absolute;
+    inset: -20% -10% auto -10%;
+    height: 420px;
+    background: radial-gradient(
+      60% 60% at 50% 0%,
+      rgba(94, 230, 208, 0.16),
+      rgba(94, 230, 208, 0.04) 40%,
+      transparent 70%
+    );
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .grid-faint {
+    background-image:
+      linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    background-size: 64px 64px;
+    -webkit-mask-image: radial-gradient(
+      70% 60% at 50% 0%,
+      #000 30%,
+      transparent 75%
+    );
+    mask-image: radial-gradient(70% 60% at 50% 0%, #000 30%, transparent 75%);
+  }
+
+  .panel {
+    background-color: #111114;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+  }
+
+  .hairline {
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+
+  .skeleton {
+    position: relative;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.04);
+    border-radius: 8px;
+  }
+  .skeleton::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.06),
+      transparent
+    );
+    animation: shimmer 1.4s infinite;
+  }
+
+  @keyframes shimmer {
+    100% {
+      transform: translateX(100%);
+    }
+  }
+}

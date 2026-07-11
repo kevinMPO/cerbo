@@ -326,6 +326,14 @@ export default function ProductPage() {
               <Upload className="h-3.5 w-3.5" />
               {uploaded ? `${uploaded.length} leads · ${fileName.slice(0, 16)}` : "Importer leads (CSV/Excel)"}
             </Button>
+            <a
+              href="/cerbo-leads-template.xlsx"
+              download
+              className="text-[11px] text-faint underline-offset-2 hover:text-muted hover:underline"
+              title="Télécharger le modèle (colonnes attendues)"
+            >
+              Modèle
+            </a>
             <Button variant="ghost" size="sm" onClick={resetAll} disabled={!!busy}>
               <RotateCcw className="h-3.5 w-3.5" /> Reset
             </Button>

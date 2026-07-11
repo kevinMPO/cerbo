@@ -48,15 +48,15 @@ export const T = {
       explain: "Listen: what is CERBO?",
       explainStop: "Stop narration",
       previewCaption:
-        "Live replay of the correction moment — the same flow runs in the console.",
+        "Rejected · 12 → Qualified · 97 — after one spoken correction. Live in the console.",
     },
     video: {
       badge: "Live run",
-      title: "Watch the agent work — unedited.",
+      title: "No time? Watch it learn in 20 seconds.",
       subtitle:
-        "CERBO ingests leads, misses a high-value one, gets corrected by a single spoken sentence, and re-qualifies it. The agent graph lights up in real time — every step sourced, nothing staged.",
+        "Press play (with sound): CERBO ingests leads, misses a high-value one, gets corrected by a single spoken sentence, and re-qualifies it — narrated by ElevenLabs. Every step sourced, nothing staged.",
     },
-    integrations: "One operating system, wired end to end",
+    integrations: "Five power-ups, each witnessable — nothing staged",
     diff: {
       badge: "Why it's different",
       title: "Most AI tools plateau. CERBO compounds.",
@@ -135,15 +135,15 @@ export const T = {
       explain: "Écouter : c'est quoi CERBO ?",
       explainStop: "Arrêter la narration",
       previewCaption:
-        "Rejeu live du moment de correction — le même flux tourne dans la console.",
+        "Rejeté · 12 → Qualifié · 97 — après une seule correction dictée. En live dans la console.",
     },
     video: {
       badge: "Run live",
-      title: "Regarde l'agent travailler — sans montage.",
+      title: "Pas le temps ? Regarde-le apprendre en 20 secondes.",
       subtitle:
-        "CERBO ingère des leads, en rate un à forte valeur, se fait corriger d'une seule phrase dictée, et le re-qualifie. Le graphe d'agent s'illumine en temps réel — chaque étape sourcée, rien de mis en scène.",
+        "Appuie sur lecture (avec le son) : CERBO ingère des leads, en rate un à forte valeur, se fait corriger d'une seule phrase dictée, et le re-qualifie — narré par ElevenLabs. Chaque étape sourcée, rien de mis en scène.",
     },
-    integrations: "Un seul operating system, câblé de bout en bout",
+    integrations: "Cinq power-ups, chacun vérifiable — rien de mis en scène",
     diff: {
       badge: "Ce qui change",
       title: "La plupart des IA plafonnent. CERBO compose.",

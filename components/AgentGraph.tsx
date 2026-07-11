@@ -123,15 +123,15 @@ export function AgentGraph({
     const puStatus = (key: string): Status => (pu.get(key) ?? "idle") as Status;
 
     const nodeDefs: { id: string; x: number; y: number; data: NodeData }[] = [
-      { id: "leads", x: 0, y: 150, data: { label: "Leads", sub: `${leadCount || 0} ingested`, status: st("leads", leadCount ? "witnessed" : "idle"), icon: "leads", kind: "io" } },
-      { id: "wispr", x: 0, y: 310, data: { label: "Wispr Flow", sub: "voice correction", status: st("wispr", puStatus("wispr")), icon: "wispr", kind: "tool" } },
-      { id: "hermes", x: 250, y: 220, data: { label: "Hermes harness", sub: "gpt-5.6-sol · agent loop", status: st("hermes", busyStep ? "active" : hasReceipts ? "witnessed" : "idle"), icon: "hermes", kind: "core" } },
-      { id: "openai", x: 560, y: 60, data: { label: "OpenAI", sub: "rule inference", status: st("openai", puStatus("openai")), icon: "openai", kind: "tool" } },
-      { id: "linkup", x: 560, y: 180, data: { label: "Linkup", sub: "firmographic enrich", status: st("linkup", puStatus("linkup")), icon: "linkup", kind: "tool" } },
-      { id: "elevenlabs", x: 560, y: 300, data: { label: "ElevenLabs", sub: "audio memo", status: st("elevenlabs", puStatus("elevenlabs")), icon: "elevenlabs", kind: "tool" } },
-      { id: "brain", x: 850, y: 90, data: { label: `Company brain`, sub: brainMax >= 2 ? "v1 → v2" : brainMax === 1 ? "v1" : "—", status: st("brain", brainMax >= 2 ? "witnessed" : brainMax === 1 ? "active" : "idle"), icon: "brain", kind: "tool" } },
-      { id: "d1", x: 850, y: 250, data: { label: "Cloudflare D1", sub: "state + receipts", status: st("d1", puStatus("d1")), icon: "d1", kind: "tool" } },
-      { id: "proof", x: 1130, y: 170, data: { label: "Proof ledger", sub: hasReceipts ? "live" : "—", status: st("proof", hasReceipts ? "witnessed" : "idle"), icon: "proof", kind: "io" } },
+      { id: "leads", x: 0, y: 150, data: { label: "Vos leads", sub: `${leadCount || 0} importés`, status: st("leads", leadCount ? "witnessed" : "idle"), icon: "leads", kind: "io" } },
+      { id: "wispr", x: 0, y: 310, data: { label: "Vous corrigez à l'oral", sub: "Wispr Flow", status: st("wispr", puStatus("wispr")), icon: "wispr", kind: "tool" } },
+      { id: "hermes", x: 250, y: 220, data: { label: "Agent Hermes", sub: "orchestre & trace", status: st("hermes", busyStep ? "active" : hasReceipts ? "witnessed" : "idle"), icon: "hermes", kind: "core" } },
+      { id: "openai", x: 560, y: 60, data: { label: "Raisonne & apprend", sub: "moteur", status: st("openai", puStatus("openai")), icon: "openai", kind: "tool" } },
+      { id: "linkup", x: 560, y: 180, data: { label: "Enrichit le prospect", sub: "Linkup · live", status: st("linkup", puStatus("linkup")), icon: "linkup", kind: "tool" } },
+      { id: "elevenlabs", x: 560, y: 300, data: { label: "Vous répond en voix", sub: "ElevenLabs", status: st("elevenlabs", puStatus("elevenlabs")), icon: "elevenlabs", kind: "tool" } },
+      { id: "brain", x: 850, y: 90, data: { label: "Company Brain", sub: brainMax >= 2 ? "règles v1 → v2" : brainMax === 1 ? "règles v1" : "—", status: st("brain", brainMax >= 2 ? "witnessed" : brainMax === 1 ? "active" : "idle"), icon: "brain", kind: "tool" } },
+      { id: "d1", x: 850, y: 250, data: { label: "Garde les preuves", sub: "Cloudflare", status: st("d1", puStatus("d1")), icon: "d1", kind: "tool" } },
+      { id: "proof", x: 1130, y: 170, data: { label: "Preuves live", sub: hasReceipts ? "traçable" : "—", status: st("proof", hasReceipts ? "witnessed" : "idle"), icon: "proof", kind: "io" } },
     ];
 
     const nodes: Node[] = nodeDefs.map((n) => ({

@@ -379,9 +379,11 @@ export default function ProductPage() {
             <div className="flex-1 text-[13px] text-offwhite">
               <span className="font-medium">Nouveau ici&nbsp;?</span>{" "}
               <span className="text-muted">
-                Clique <b className="font-medium text-offwhite">Run</b> pour avancer le
-                pipeline étape par étape, ou <b className="font-medium text-offwhite">Auto-play</b> pour
-                le regarder tourner seul. Le graphe s'illumine à chaque étape.
+                Clique <b className="font-medium text-offwhite">Auto-play</b> pour voir
+                CERBO qualifier tes leads, en rater un à forte valeur, puis se corriger
+                <b className="font-medium text-offwhite"> à la voix</b> — tout seul. Ou avance
+                pas à pas avec <b className="font-medium text-offwhite">Run</b>. Active le son 🔊
+                pour la narration.
               </span>
             </div>
             <button onClick={dismissCoach} className="text-faint hover:text-offwhite" aria-label="Fermer">

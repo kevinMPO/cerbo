@@ -1,11 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { FileCheck, Clock, Boxes } from "lucide-react";
+import Link from "next/link";
+import { FileCheck, Clock, Boxes, ArrowRight } from "lucide-react";
 import { Nav } from "@/components/Nav";
 import {
   Panel,
   Badge,
+  Button,
   Mono,
   LiveDot,
   StatTile,
@@ -63,6 +65,23 @@ export default function ProofPage() {
             codé en dur : chaque chiffre vient d'un run.
           </p>
         </div>
+
+        {ready && decisionsCount === 0 && (
+          <Panel className="mb-6 flex flex-col items-center gap-3 p-8 text-center">
+            <Boxes className="h-6 w-6 text-faint" />
+            <div>
+              <h3 className="text-sm font-medium text-offwhite">Aucun run pour l'instant</h3>
+              <p className="mt-1 max-w-md text-[13px] text-muted">
+                Ouvre la Console et clique <b className="text-offwhite">Run</b> — receipts, skills et décisions apparaîtront ici en direct, sourcés depuis Cloudflare D1.
+              </p>
+            </div>
+            <Link href="/product">
+              <Button variant="primary">
+                Ouvrir la Console <ArrowRight className="h-4 w-4" />
+              </Button>
+            </Link>
+          </Panel>
+        )}
 
         <div className="mb-6 grid grid-cols-2 gap-2 sm:grid-cols-4">
           <StatTile label="Leads qualifiés" value={<Mono>{qualified}</Mono>} tone="accent" sub="décisions sourcées" />

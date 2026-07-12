@@ -1,29 +1,39 @@
 "use client";
 
 /**
- * Lightweight client-side gate for the console (/product, /proof). Not real
- * identity — a demo access wall. The cookie is read by middleware to protect
- * the routes; localStorage mirrors it for UI state.
+ * Client-side session for the console. Two paths sign in:
+ *  - magic code (email → code): the /api/auth/verify endpoint sets the cookies
+ *    server-side; the client just mirrors the email into localStorage.
+ *  - demo access code ("demo"): no server call, cookies set here as demo user.
+ * `cerbo_email` identifies the credit account; `cerbo_auth` gates the routes.
  */
-const COOKIE = "cerbo_auth";
+const AUTH_COOKIE = "cerbo_auth";
+const EMAIL_COOKIE = "cerbo_email";
 const KEY = "cerbo:auth";
+const MAX_AGE = 60 * 60 * 24 * 30; // 30 days
 
-/** Access codes accepted at the login wall. */
+/** Demo access codes → sign in as the unlimited demo account. */
 const CODES = ["demo", "cerbo", "hermes"];
+export const DEMO_EMAIL = "demo@cerbo.dev";
 
 export function isValidCode(code: string): boolean {
   return CODES.includes(code.trim().toLowerCase());
 }
 
+/** Sign in as `email`. Sets both cookies (so credit gating can read the account). */
 export function signIn(email: string): void {
   if (typeof document === "undefined") return;
-  document.cookie = `${COOKIE}=1; path=/; max-age=86400; SameSite=Lax`;
-  window.localStorage.setItem(KEY, email || "guest");
+  const e = (email || DEMO_EMAIL).trim().toLowerCase();
+  const opts = `path=/; max-age=${MAX_AGE}; SameSite=Lax`;
+  document.cookie = `${AUTH_COOKIE}=1; ${opts}`;
+  document.cookie = `${EMAIL_COOKIE}=${encodeURIComponent(e)}; ${opts}`;
+  window.localStorage.setItem(KEY, e);
 }
 
 export function signOut(): void {
   if (typeof document === "undefined") return;
-  document.cookie = `${COOKIE}=; path=/; max-age=0; SameSite=Lax`;
+  document.cookie = `${AUTH_COOKIE}=; path=/; max-age=0; SameSite=Lax`;
+  document.cookie = `${EMAIL_COOKIE}=; path=/; max-age=0; SameSite=Lax`;
   window.localStorage.removeItem(KEY);
 }
 

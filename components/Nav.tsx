@@ -17,6 +17,24 @@ export function Nav() {
   useEffect(() => setUser(currentUser()), [path]);
 
   const authed = !!user;
+
+  // Credit balance (freemium). "unlimited" for the demo account.
+  const [credits, setCredits] = useState<number | "unlimited" | null>(null);
+  useEffect(() => {
+    if (!authed) {
+      setCredits(null);
+      return;
+    }
+    fetch("/api/account")
+      .then((r) => r.json())
+      .then((d: any) => {
+        if (d.ok) setCredits(d.unlimited ? "unlimited" : d.credits);
+      })
+      .catch(() => {});
+    const onEvt = (e: any) => setCredits(e.detail);
+    window.addEventListener("cerbo:credits", onEvt as any);
+    return () => window.removeEventListener("cerbo:credits", onEvt as any);
+  }, [authed, path]);
   const links = [
     { href: "/", label: t.home },
     ...(authed
@@ -77,6 +95,21 @@ export function Nav() {
             ))}
           </div>
 
+          {authed && credits !== null && (
+            <span
+              className={cn(
+                "num mr-1 rounded-md border px-2 py-0.5 text-[11px]",
+                credits === "unlimited"
+                  ? "border-border text-faint"
+                  : credits <= 3
+                    ? "border-bad/40 text-bad"
+                    : "border-accent-line text-accent"
+              )}
+              title="Crédits — 1 par lead qualifié"
+            >
+              {credits === "unlimited" ? "démo · ∞" : `${credits} crédits`}
+            </span>
+          )}
           <span className="mr-2 flex items-center gap-1.5 text-[11px] text-faint">
             <LiveDot tone="accent" /> Hermes
           </span>

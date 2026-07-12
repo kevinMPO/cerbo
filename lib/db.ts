@@ -351,6 +351,44 @@ export async function consumeAuthCode(db: D1Database, email: string, code: strin
   return true;
 }
 
+// ---------- escalations (exception inbox) ----------
+export async function createEscalation(
+  db: D1Database,
+  session: string,
+  e: { company: string; domain: string; lead: unknown; verdict: string; ruleCited: string; confidence: number; rationale: string }
+) {
+  await db
+    .prepare(
+      `INSERT INTO escalations (session,company,domain,lead,verdict,ruleCited,confidence,rationale,status,createdAt)
+       VALUES (?,?,?,?,?,?,?,?,'pending',?)`
+    )
+    .bind(session, e.company, e.domain, JSON.stringify(e.lead), e.verdict, e.ruleCited, e.confidence, e.rationale, Date.now())
+    .run();
+}
+
+export async function listEscalations(db: D1Database, session: string) {
+  const { results } = await db
+    .prepare(`SELECT * FROM escalations WHERE session=? ORDER BY (status='pending') DESC, createdAt DESC`)
+    .bind(session)
+    .all();
+  return (results ?? []).map((r: any) => ({ ...r, lead: safeParse(r.lead) }));
+}
+
+export async function resolveEscalation(db: D1Database, id: number, resolution: string) {
+  await db
+    .prepare(`UPDATE escalations SET status='resolved', resolution=?, resolvedAt=? WHERE id=?`)
+    .bind(resolution, Date.now(), id)
+    .run();
+}
+
+function safeParse(s: string) {
+  try {
+    return JSON.parse(s);
+  } catch {
+    return null;
+  }
+}
+
 // ---------- reset ----------
 export async function resetSession(db: D1Database, session: string) {
   for (const t of [
@@ -360,6 +398,7 @@ export async function resetSession(db: D1Database, session: string) {
     "decisions",
     "receipts",
     "powerups",
+    "escalations",
   ]) {
     await db.prepare(`DELETE FROM ${t} WHERE session=?`).bind(session).run();
   }

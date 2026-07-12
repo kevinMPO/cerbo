@@ -23,6 +23,9 @@ import {
  * can read it. Nothing hardcoded: scores/latency/cost are computed at runtime.
  */
 
+/** Below this confidence, the agent escalates to a human instead of guessing. */
+const ESCALATE_BELOW = 60;
+
 const EMPTY_LLM: LlmResult = {
   text: "",
   provider: "fallback-cache",
@@ -163,6 +166,21 @@ export async function runQualify(
   });
   await db.markPowerup(DB, session, "linkup", "Linkup", en.live ? "witnessed" : "active", `${en.live ? "LIVE enrichment" : "Enrichment (cache)"} — ${lead.company}: ${en.enrichment.employees}, ${en.enrichment.fundingStage}`);
 
+  // Escalate by exception: below the confidence threshold, the agent asks the
+  // human instead of pretending. This is the recurring correction loop.
+  const escalated = q.confidence < ESCALATE_BELOW;
+  if (escalated) {
+    await db.createEscalation(DB, session, {
+      company: lead.company,
+      domain: lead.domain,
+      lead,
+      verdict: q.verdict,
+      ruleCited: q.ruleCited,
+      confidence: q.confidence,
+      rationale: q.rationale,
+    });
+  }
+
   return {
     ok: true,
     lead,
@@ -174,6 +192,7 @@ export async function runQualify(
     confidence: q.confidence,
     engine: q.engine,
     rationale: q.rationale,
+    escalated,
     receipt: { ...pickReceipt(q.llm), linkupLatencyMs: en.latencyMs },
   };
 }
@@ -336,16 +355,17 @@ export async function runMemory(env: Env, session: string, fallback: boolean) {
 // ---------------- STATE (for polling) ----------------
 export async function getState(env: Env, session: string) {
   const DB = env.DB;
-  const [brains, decisions, receipts, powerups, leads, skills] = await Promise.all([
+  const [brains, decisions, receipts, powerups, leads, skills, escalations] = await Promise.all([
     db.listBrains(DB, session),
     db.listDecisions(DB, session),
     db.listReceipts(DB, session),
     db.listPowerups(DB, session),
     db.listLeads(DB, session),
     db.listSkills(DB, session),
+    db.listEscalations(DB, session),
   ]);
   const waitlist = await db.waitlistCount(DB);
-  return { brains, decisions, receipts, powerups, leads, skills, waitlist };
+  return { brains, decisions, receipts, powerups, leads, skills, escalations, waitlist };
 }
 
 function pickReceipt(r: LlmResult) {

@@ -51,7 +51,8 @@ export async function llmQualify(
   const system =
     "You are CERBO's lead-qualification engine. Decide using ONLY the company-brain rules provided — no outside criteria. Return STRICT JSON: " +
     '{"verdict":"qualified"|"rejected","ruleCited":"<the single decisive rule id, e.g. R3>","score":<int 0-100>,"confidence":<int 0-100 how sure you are>,"rationale":"<one factual sentence in French>"}. ' +
-    "Cite the ONE rule that decides. Be deterministic: the same lead + same rules must always give the same verdict.";
+    "Cite the ONE rule that decides. Be deterministic: the same lead + same rules must always give the same verdict. " +
+    "HONEST CONFIDENCE — this is critical: if the enrichment is thin, ambiguous, or the rules don't clearly apply to this lead, set confidence BELOW 50 and state precisely what's missing in the rationale. NEVER be falsely confident. High confidence (80+) is only for cases where the enrichment clearly triggers a specific rule.";
 
   const user =
     `Règles du company-brain (v${brainVersion}) :\n` +

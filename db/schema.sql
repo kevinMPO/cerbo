@@ -105,3 +105,22 @@ CREATE TABLE IF NOT EXISTS auth_codes (
   code TEXT NOT NULL,
   expiresAt INTEGER NOT NULL
 );
+
+-- Exception inbox: leads the agent was NOT confident about, awaiting a human
+-- decision. Resolving one is the recurring correction loop.
+CREATE TABLE IF NOT EXISTS escalations (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  session TEXT NOT NULL,
+  company TEXT NOT NULL,
+  domain TEXT,
+  lead TEXT NOT NULL,          -- JSON of the lead
+  verdict TEXT NOT NULL,       -- the agent's tentative verdict
+  ruleCited TEXT NOT NULL,
+  confidence INTEGER NOT NULL,
+  rationale TEXT NOT NULL,
+  status TEXT NOT NULL,        -- pending | resolved
+  resolution TEXT,             -- qualified | rejected | null
+  createdAt INTEGER NOT NULL,
+  resolvedAt INTEGER
+);
+CREATE INDEX IF NOT EXISTS escalations_session ON escalations(session);

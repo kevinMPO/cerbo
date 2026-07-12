@@ -18,6 +18,7 @@ import {
   Upload,
   ArrowRight,
   Building2,
+  Search,
 } from "lucide-react";
 import { Nav } from "@/components/Nav";
 import {
@@ -98,6 +99,30 @@ export default function ProductPage() {
   const [uploaded, setUploaded] = useState<SeedLead[] | null>(null);
   const [fileName, setFileName] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Company search (Apollo) — type a name, find real companies, no CSV needed.
+  const [searchQ, setSearchQ] = useState("");
+  const [searchResults, setSearchResults] = useState<{ name: string; domain: string; logo: string | null }[]>([]);
+  const [searching, setSearching] = useState(false);
+  useEffect(() => {
+    if (searchQ.trim().length < 2) {
+      setSearchResults([]);
+      return;
+    }
+    setSearching(true);
+    const t = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/search?q=${encodeURIComponent(searchQ)}`);
+        const d: any = await res.json();
+        setSearchResults(d.results || []);
+      } catch {
+        /* ignore */
+      } finally {
+        setSearching(false);
+      }
+    }, 350);
+    return () => clearTimeout(t);
+  }, [searchQ]);
   async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0];
     if (!f) return;
@@ -195,22 +220,22 @@ export default function ProductPage() {
   }
   // Qualify a real company from a one-click chip (no CSV) — Linkup resolves the
   // SIREN live, the agent qualifies it against the current brain rules.
-  async function runExample(ex: ExampleLead) {
-    const lead = {
-      extId: `EX-${ex.siren}`,
-      company: ex.name,
-      domain: ex.domain,
-      industry: ex.industry,
-      sizeBand: "?",
-      region: ex.region,
-      signal: `SIREN ${ex.siren}`,
-    };
+  async function runCompany(c: { company: string; domain: string; industry: string; region: string; signal: string; extId?: string }) {
+    const lead = { extId: c.extId || `C-${c.company.replace(/\W+/g, "").slice(0, 8)}`, sizeBand: "?", ...c };
     const r = await call("qualify", { lead, brainVersion: v2 ? 2 : 1 });
     setQualify(r);
     toast[r.verdict === "qualified" ? "success" : "message"](
-      `${ex.name} → ${r.verdict}`,
+      `${c.company} → ${r.verdict}`,
       { description: `règle ${r.ruleCited} · confiance ${r.confidence ?? "?"}%` }
     );
+  }
+  function runExample(ex: ExampleLead) {
+    return runCompany({ extId: `EX-${ex.siren}`, company: ex.name, domain: ex.domain, industry: ex.industry, region: ex.region, signal: `SIREN ${ex.siren}` });
+  }
+  function pickCompany(r: { name: string; domain: string }) {
+    setSearchQ("");
+    setSearchResults([]);
+    return runCompany({ company: r.name, domain: r.domain || "—", industry: "—", region: "EU", signal: `trouvé via Apollo${r.domain ? ` · ${r.domain}` : ""}` });
   }
   async function runCorrectV1() {
     playVoice("correct-v1");
@@ -484,10 +509,40 @@ export default function ProductPage() {
         <div className="mb-6">
           <SectionTitle
             index="—"
-            title="Sans CSV ? Qualifie une entreprise en 1 clic"
-            right={<span className="flex items-center gap-1.5 text-[11px] text-faint"><LiveDot />Linkup live</span>}
+            title="Sans CSV ? Cherche une entreprise et qualifie-la"
+            right={<span className="flex items-center gap-1.5 text-[11px] text-faint"><LiveDot />Apollo + Linkup live</span>}
           />
-          <div className="mt-3 flex flex-wrap gap-2">
+          {/* Apollo search — type a company name, no CSV needed */}
+          <div className="relative mt-3 max-w-lg">
+            <div className="flex items-center gap-2 rounded-lg border border-border bg-canvas px-3 focus-within:border-accent-line">
+              <Search className="h-4 w-4 shrink-0 text-faint" />
+              <input
+                value={searchQ}
+                onChange={(e) => setSearchQ(e.target.value)}
+                placeholder="Cherche une entreprise à qualifier… (ex. Doctolib, Alan, Payfit)"
+                className="w-full bg-transparent py-2.5 text-[13px] text-offwhite outline-none placeholder:text-faint"
+              />
+              {searching && <LiveDot />}
+            </div>
+            {searchResults.length > 0 && (
+              <div className="absolute z-30 mt-1 w-full overflow-hidden rounded-lg border border-border bg-surface p-1 shadow-2xl">
+                {searchResults.map((r, i) => (
+                  <button
+                    key={i}
+                    onClick={() => pickCompany(r)}
+                    disabled={!!busy}
+                    className="flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-left text-[13px] transition-colors hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    <Building2 className="h-3.5 w-3.5 shrink-0 text-accent" />
+                    <span className="truncate text-offwhite">{r.name}</span>
+                    {r.domain && <span className="num ml-auto shrink-0 text-[11px] text-faint">{r.domain}</span>}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <span className="text-[11px] text-faint">ou un exemple :</span>
             {EXAMPLE_LEADS.map((ex) => (
               <button
                 key={ex.siren}
@@ -501,9 +556,9 @@ export default function ProductPage() {
             ))}
           </div>
           <p className="mt-2 max-w-2xl text-[11px] leading-relaxed text-faint">
-            Linkup résout le SIREN en direct → l'agent qualifie avec les règles de{" "}
-            <b className="text-muted">ton Company Brain</b>. C'est à ça qu'il sert ensuite :
-            juger <b className="text-muted">n'importe quelle entreprise</b> avec tes règles, en citant la décisive.
+            <b className="text-muted">Apollo</b> trouve l'entreprise → <b className="text-muted">Linkup</b> l'enrichit en direct → l'agent
+            qualifie avec les règles de <b className="text-muted">ton Company Brain</b>. C'est à ça qu'il sert
+            ensuite : juger <b className="text-muted">n'importe quelle entreprise</b> avec tes règles, en citant la décisive.
           </p>
         </div>
 

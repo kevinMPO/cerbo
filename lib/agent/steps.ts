@@ -5,6 +5,7 @@ import { llm, type LlmResult } from "../llm";
 import { enrich } from "../linkup";
 import { synthMemo } from "../elevenlabs";
 import { evaluate } from "./rules";
+import { llmQualify } from "./llmQualify";
 import { buildBrainMarkdown } from "./brainDoc";
 import { buildSkill } from "./skillContent";
 import {
@@ -129,41 +130,35 @@ export async function runQualify(
   session: string,
   extId: string | undefined,
   brainVersion: number,
-  fallback: boolean
+  fallback: boolean,
+  passedLead?: SeedLead
 ) {
   const DB = env.DB;
-  const lead = findLead(extId);
+  const lead = passedLead ?? findLead(extId);
   const en = await enrich(env, lead.domain, lead.company, fallback);
   const rules =
     brainVersion >= 2
       ? SEED_RULES_V1.map((r) => (r.id === "R3" ? CORRECTED_R3 : r))
       : SEED_RULES_V1;
-  const evaln = evaluate(lead, en.enrichment, brainVersion, rules);
 
-  const cached = `${evaln.verdict.toUpperCase()} — score ${evaln.score}. ${evaln.rationale}`;
-  const narration = await llm(env, {
-    forceFallback: fallback,
-    cached,
-    system:
-      "You are CERBO. Explain the qualification decision in ONE sentence, citing the deciding rule. Factual, English.",
-    user: `Lead: ${lead.company} (${lead.industry}, ${lead.sizeBand}, ${lead.region}). Signal: ${lead.signal}. Linkup enrichment: ${en.enrichment.buyingSignal} | ${en.enrichment.founderNote}. Engine decision: ${evaln.verdict}, rule ${evaln.ruleCited}, score ${evaln.score}.`,
-  });
+  // REAL qualification: the LLM applies the brain rules (deterministic fallback).
+  const q = await llmQualify(env, lead, en.enrichment, rules, brainVersion, fallback);
 
-  await receipt(DB, session, "qualify", narration);
+  await receipt(DB, session, "qualify", q.llm);
   await db.logDecision(DB, session, {
     step: "qualify",
     input: `${lead.company} — ${lead.industry}, ${lead.sizeBand}, ${lead.region}`,
-    ruleCited: evaln.ruleCited,
-    output: `${evaln.verdict} · score ${evaln.score} · ${narration.text || evaln.rationale}`,
-    verdict: evaln.verdict,
-    score: evaln.score,
-    latencyMs: narration.latencyMs,
-    costUsd: narration.costUsd,
-    tokensIn: narration.tokensIn,
-    tokensOut: narration.tokensOut,
+    ruleCited: q.ruleCited,
+    output: `${q.verdict} · score ${q.score} · confiance ${q.confidence}% · ${q.rationale}`,
+    verdict: q.verdict,
+    score: q.score,
+    latencyMs: q.llm.latencyMs,
+    costUsd: q.llm.costUsd,
+    tokensIn: q.llm.tokensIn,
+    tokensOut: q.llm.tokensOut,
     toolCalls: [
       { tool: "linkup:enrich", ok: true, latencyMs: en.latencyMs, summary: `${en.live ? "LIVE" : "cache"} — ${en.summary}` },
-      { tool: `openai:${narration.model}`, ok: narration.ok, latencyMs: narration.latencyMs, summary: "decision narration" },
+      { tool: `${q.engine === "llm" ? q.llm.provider : "fallback"}:${q.llm.model}`, ok: q.llm.ok, latencyMs: q.llm.latencyMs, summary: `verdict ${q.engine} (confiance ${q.confidence}%)` },
     ],
   });
   await db.markPowerup(DB, session, "linkup", "Linkup", en.live ? "witnessed" : "active", `${en.live ? "LIVE enrichment" : "Enrichment (cache)"} — ${lead.company}: ${en.enrichment.employees}, ${en.enrichment.fundingStage}`);
@@ -173,11 +168,13 @@ export async function runQualify(
     lead,
     enrichment: en.enrichment,
     live: en.live,
-    verdict: evaln.verdict,
-    score: evaln.score,
-    ruleCited: evaln.ruleCited,
-    rationale: narration.text || evaln.rationale,
-    receipt: { ...pickReceipt(narration), linkupLatencyMs: en.latencyMs },
+    verdict: q.verdict,
+    score: q.score,
+    ruleCited: q.ruleCited,
+    confidence: q.confidence,
+    engine: q.engine,
+    rationale: q.rationale,
+    receipt: { ...pickReceipt(q.llm), linkupLatencyMs: en.latencyMs },
   };
 }
 
@@ -192,29 +189,23 @@ async function qualifyMissed(
 ) {
   const DB = env.DB;
   const en = await enrich(env, MISSED_LEAD.domain, MISSED_LEAD.company, fallback);
-  const evaln = evaluate(MISSED_LEAD, en.enrichment, brainVersion, rules);
-  const cached = `${evaln.verdict.toUpperCase()} — score ${evaln.score}. ${evaln.rationale}`;
-  const narration = await llm(env, {
-    forceFallback: fallback,
-    cached,
-    system: "You are CERBO. Explain the decision in ONE sentence, citing the deciding rule. English, factual.",
-    user: `Lead: ${MISSED_LEAD.company} (${MISSED_LEAD.industry}). Signal: ${MISSED_LEAD.signal}. Deciding rule: ${evaln.ruleCited}. Verdict: ${evaln.verdict}.`,
-  });
-  await receipt(DB, session, step, narration);
+  // REAL qualification of the missed lead — the LLM applies the (v1 or v2) rules.
+  const q = await llmQualify(env, MISSED_LEAD, en.enrichment, rules, brainVersion, fallback);
+  await receipt(DB, session, step, q.llm);
   await db.logDecision(DB, session, {
     step,
     input: `${MISSED_LEAD.company} — ${MISSED_LEAD.industry}, ${MISSED_LEAD.sizeBand}`,
-    ruleCited: evaln.ruleCited,
-    output: `${evaln.verdict} · score ${evaln.score} · ${narration.text || evaln.rationale}`,
-    verdict: evaln.verdict,
-    score: evaln.score,
-    latencyMs: narration.latencyMs,
-    costUsd: narration.costUsd,
-    tokensIn: narration.tokensIn,
-    tokensOut: narration.tokensOut,
+    ruleCited: q.ruleCited,
+    output: `${q.verdict} · score ${q.score} · confiance ${q.confidence}% · ${q.rationale}`,
+    verdict: q.verdict,
+    score: q.score,
+    latencyMs: q.llm.latencyMs,
+    costUsd: q.llm.costUsd,
+    tokensIn: q.llm.tokensIn,
+    tokensOut: q.llm.tokensOut,
     toolCalls: [{ tool: "linkup:enrich", ok: true, latencyMs: en.latencyMs, summary: `${en.live ? "LIVE" : "cache"} — ${en.summary}` }],
   });
-  return { evaln, en };
+  return { q, en };
 }
 
 export async function runCorrect(
@@ -227,8 +218,8 @@ export async function runCorrect(
   const DB = env.DB;
 
   if (action === "run-v1") {
-    const { evaln, en } = await qualifyMissed(env, session, 1, SEED_RULES_V1, fallback, "correct-v1");
-    return { ok: true, phase: "v1", lead: MISSED_LEAD, enrichment: en.enrichment, live: en.live, verdict: evaln.verdict, score: evaln.score, ruleCited: evaln.ruleCited, rationale: evaln.rationale };
+    const { q, en } = await qualifyMissed(env, session, 1, SEED_RULES_V1, fallback, "correct-v1");
+    return { ok: true, phase: "v1", lead: MISSED_LEAD, enrichment: en.enrichment, live: en.live, verdict: q.verdict, score: q.score, ruleCited: q.ruleCited, confidence: q.confidence, engine: q.engine, rationale: q.rationale };
   }
 
   if (action === "apply") {
@@ -263,8 +254,8 @@ export async function runCorrect(
 
   if (action === "run-v2") {
     const rulesV2 = SEED_RULES_V1.map((r) => (r.id === "R3" ? CORRECTED_R3 : r));
-    const { evaln, en } = await qualifyMissed(env, session, 2, rulesV2, fallback, "correct-v2");
-    return { ok: true, phase: "v2", lead: MISSED_LEAD, enrichment: en.enrichment, live: en.live, verdict: evaln.verdict, score: evaln.score, ruleCited: evaln.ruleCited, rationale: evaln.rationale };
+    const { q, en } = await qualifyMissed(env, session, 2, rulesV2, fallback, "correct-v2");
+    return { ok: true, phase: "v2", lead: MISSED_LEAD, enrichment: en.enrichment, live: en.live, verdict: q.verdict, score: q.score, ruleCited: q.ruleCited, confidence: q.confidence, engine: q.engine, rationale: q.rationale };
   }
 
   return { ok: false, error: "unknown action" };

@@ -9,11 +9,12 @@ export const onRequestPost: PagesFunction<Env> = async (ctx) => {
       sessionId?: string;
       extId?: string;
       brainVersion?: number;
+      lead?: any;
     };
     if (!body.sessionId) return json({ error: "sessionId required" }, 400);
     const fallback = ctx.request.headers.get("x-cerbo-fallback") === "1";
     return json(
-      await runQualify(ctx.env, body.sessionId, body.extId, body.brainVersion ?? 1, fallback)
+      await runQualify(ctx.env, body.sessionId, body.extId, body.brainVersion ?? 1, fallback, body.lead)
     );
   } catch (e) {
     return json({ ok: false, error: String(e) }, 500);

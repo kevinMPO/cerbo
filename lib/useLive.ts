@@ -14,6 +14,7 @@ export type LiveState = {
   powerups: any[];
   leads: any[];
   skills: any[];
+  escalations: any[];
   waitlist: number;
   ready: boolean;
   refresh: () => void;
@@ -26,6 +27,7 @@ const EMPTY = {
   powerups: [],
   leads: [],
   skills: [],
+  escalations: [],
   waitlist: 0,
 };
 
@@ -52,6 +54,7 @@ export function useLive(session: string, intervalMs = 1200): LiveState {
           powerups: j.powerups ?? [],
           leads: j.leads ?? [],
           skills: j.skills ?? [],
+          escalations: j.escalations ?? [],
           waitlist: j.waitlist ?? 0,
         });
         setReady(true);

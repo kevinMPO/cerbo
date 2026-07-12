@@ -237,6 +237,11 @@ export default function ProductPage() {
     setSearchResults([]);
     return runCompany({ company: r.name, domain: r.domain || "—", industry: "—", region: "EU", signal: `trouvé via Apollo${r.domain ? ` · ${r.domain}` : ""}` });
   }
+  // The correction loop: a human resolves a lead the agent wasn't sure about.
+  async function resolveOne(e: any, resolution: "qualified" | "rejected") {
+    await call("resolve", { id: e.id, resolution, company: e.company });
+    toast.success(`${e.company} → ${resolution}`, { description: "tranché — l'agent a appris" });
+  }
   async function runCorrectV1() {
     playVoice("correct-v1");
     const r = await call("correct", { action: "run-v1" });
@@ -365,6 +370,8 @@ export default function ProductPage() {
   }
 
   const convexReady = live.ready;
+  const escalations = (live.escalations ?? []) as any[];
+  const pendingEsc = escalations.filter((e) => e.status === "pending");
 
   return (
     <AuthGate>
@@ -591,6 +598,44 @@ export default function ProductPage() {
             <PowerupRail rows={powerups} loading={!convexReady} />
           </div>
         </div>
+
+        {/* exception inbox — the recurring correction loop */}
+        {escalations.length > 0 && (
+          <div className="mb-6">
+            <SectionTitle
+              index="—"
+              title="Boîte d'exceptions — l'agent te demande"
+              right={<Badge tone={pendingEsc.length ? "warn" : "ok"}>{pendingEsc.length ? `${pendingEsc.length} en attente` : "tout tranché"}</Badge>}
+            />
+            <div className="mt-3 space-y-2">
+              {pendingEsc.length === 0 && (
+                <Panel className="p-4 text-center text-[13px] text-faint">
+                  Rien à trancher — l'agent était sûr de lui, ou tu as déjà tranché.
+                </Panel>
+              )}
+              {pendingEsc.map((e) => (
+                <Panel key={e.id} className="flex flex-wrap items-center gap-3 border-warn/30 p-4">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="text-[13px] font-medium text-offwhite">{e.company}</span>
+                      <Badge tone="warn">incertain · {e.confidence}%</Badge>
+                      <span className="num text-[11px] text-faint">tentative : {e.verdict} ({e.ruleCited})</span>
+                    </div>
+                    <p className="mt-1 text-[12px] text-muted">{e.rationale}</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button size="sm" variant="default" onClick={() => resolveOne(e, "rejected")} disabled={!!busy} className="border-bad/40 text-bad">
+                      Rejeter
+                    </Button>
+                    <Button size="sm" variant="primary" onClick={() => resolveOne(e, "qualified")} disabled={!!busy}>
+                      Qualifier
+                    </Button>
+                  </div>
+                </Panel>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="grid gap-6 lg:grid-cols-[360px_1fr]">
           {/* control column */}

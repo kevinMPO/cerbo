@@ -118,11 +118,15 @@ export async function llm(env: Env, opts: LlmOptions): Promise<LlmResult> {
     }
   }
 
-  // Primary: OpenAI.
+  // Primary: OpenAI. Routed through Cloudflare AI Gateway when configured
+  // (cache, analytics, cost tracking, retries) — transparent otherwise.
+  const openaiEndpoint = env.AI_GATEWAY_OPENAI_URL
+    ? `${env.AI_GATEWAY_OPENAI_URL.replace(/\/$/, "")}/chat/completions`
+    : OPENAI_URL;
   if (openaiKey) {
     try {
       const r = await callOpenAiCompatible(
-        OPENAI_URL,
+        openaiEndpoint,
         openaiKey,
         openaiModel,
         opts

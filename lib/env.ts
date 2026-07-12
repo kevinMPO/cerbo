@@ -21,4 +21,7 @@ export interface Env {
   FREE_CREDITS?: string; // free credits on signup (default 20)
   // Apollo.io — company search (find companies when the user has no CSV).
   APOLLO_API_KEY?: string;
+  // Cloudflare AI Gateway — route OpenAI through it for cache/analytics/retries.
+  // Base ending in /openai, e.g. https://gateway.ai.cloudflare.com/v1/<acct>/cerbo/openai
+  AI_GATEWAY_OPENAI_URL?: string;
 }

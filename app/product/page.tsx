@@ -17,6 +17,7 @@ import {
   VolumeX,
   Upload,
   ArrowRight,
+  Building2,
 } from "lucide-react";
 import { Nav } from "@/components/Nav";
 import {
@@ -40,6 +41,7 @@ import { AuthGate } from "@/components/AuthGate";
 import { useLang } from "@/lib/i18n";
 import { parseLeads } from "@/lib/parseLeads";
 import type { SeedLead } from "@/data/seed";
+import { EXAMPLE_LEADS, type ExampleLead } from "@/data/examples";
 import { fmtMs, fmtUsd, cn } from "@/lib/utils";
 
 type QualifyResult = {
@@ -50,6 +52,8 @@ type QualifyResult = {
   score: number;
   ruleCited: string;
   rationale: string;
+  confidence?: number;
+  engine?: string;
 };
 
 export default function ProductPage() {
@@ -188,6 +192,25 @@ export default function ProductPage() {
     const r = await call("qualify", { extId: "L-002", brainVersion: v2 ? 2 : 1 });
     setQualify(r);
     toast.success(`Lead ${r.verdict}`, { description: `${r.lead.company} · règle ${r.ruleCited}` });
+  }
+  // Qualify a real company from a one-click chip (no CSV) — Linkup resolves the
+  // SIREN live, the agent qualifies it against the current brain rules.
+  async function runExample(ex: ExampleLead) {
+    const lead = {
+      extId: `EX-${ex.siren}`,
+      company: ex.name,
+      domain: ex.domain,
+      industry: ex.industry,
+      sizeBand: "?",
+      region: ex.region,
+      signal: `SIREN ${ex.siren}`,
+    };
+    const r = await call("qualify", { lead, brainVersion: v2 ? 2 : 1 });
+    setQualify(r);
+    toast[r.verdict === "qualified" ? "success" : "message"](
+      `${ex.name} → ${r.verdict}`,
+      { description: `règle ${r.ruleCited} · confiance ${r.confidence ?? "?"}%` }
+    );
   }
   async function runCorrectV1() {
     playVoice("correct-v1");
@@ -457,6 +480,33 @@ export default function ProductPage() {
           </div>
         </div>
 
+        {/* zero-CSV: qualify a real company in one click */}
+        <div className="mb-6">
+          <SectionTitle
+            index="—"
+            title="Sans CSV ? Qualifie une entreprise en 1 clic"
+            right={<span className="flex items-center gap-1.5 text-[11px] text-faint"><LiveDot />Linkup live</span>}
+          />
+          <div className="mt-3 flex flex-wrap gap-2">
+            {EXAMPLE_LEADS.map((ex) => (
+              <button
+                key={ex.siren}
+                onClick={() => runExample(ex)}
+                disabled={!!busy}
+                className="group flex items-center gap-2 rounded-lg border border-border bg-surface-2 px-3 py-1.5 text-[13px] text-offwhite transition-colors hover:border-accent-line disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                <Building2 className="h-3.5 w-3.5 text-accent" /> {ex.name}
+                <span className="num text-[10px] text-faint">{ex.siren}</span>
+              </button>
+            ))}
+          </div>
+          <p className="mt-2 max-w-2xl text-[11px] leading-relaxed text-faint">
+            Linkup résout le SIREN en direct → l'agent qualifie avec les règles de{" "}
+            <b className="text-muted">ton Company Brain</b>. C'est à ça qu'il sert ensuite :
+            juger <b className="text-muted">n'importe quelle entreprise</b> avec tes règles, en citant la décisive.
+          </p>
+        </div>
+
         {/* stat row */}
         <div className="mb-6 grid grid-cols-2 gap-2 sm:grid-cols-4">
           <StatTile label="Décisions" value={<Mono>{totals.count}</Mono>} />
@@ -649,7 +699,12 @@ function EnrichCard({ title, r }: { title: string; r: QualifyResult }) {
             <Badge tone="neutral">{title}</Badge>
             <span className="text-sm font-medium text-offwhite">{r.lead.company}</span>
           </div>
-          <Badge tone={r.verdict === "qualified" ? "ok" : "bad"}>{r.verdict} · {r.score}</Badge>
+          <div className="flex items-center gap-2">
+            {typeof r.confidence === "number" && (
+              <span className="num text-[11px] text-faint">conf {r.confidence}%</span>
+            )}
+            <Badge tone={r.verdict === "qualified" ? "ok" : "bad"}>{r.verdict} · {r.score}</Badge>
+          </div>
         </div>
         <div className="mt-3 space-y-1.5 text-[12px]">
           <Row k="Effectif" v={r.enrichment.employees} />
@@ -657,7 +712,13 @@ function EnrichCard({ title, r }: { title: string; r: QualifyResult }) {
           <Row k="Signal" v={r.enrichment.buyingSignal} />
           {r.enrichment.founderNote && <Row k="Fondateur" v={r.enrichment.founderNote} />}
           <Row k="Règle" v={r.ruleCited} accent />
+          {r.rationale && <Row k="Raison" v={r.rationale} />}
           <div className="flex items-center gap-2 pt-1">
+            {r.engine && (
+              <Badge tone={r.engine === "llm" ? "accent" : "neutral"}>
+                {r.engine === "llm" ? "décidé par IA" : "fallback"}
+              </Badge>
+            )}
             <Badge tone={r.live ? "ok" : "warn"}>{r.live ? "Linkup LIVE" : "Linkup cache"}</Badge>
             {r.enrichment.sources?.slice(0, 2).map((s, i) => (
               <span key={i} className="num truncate text-[10px] text-faint">{s}</span>

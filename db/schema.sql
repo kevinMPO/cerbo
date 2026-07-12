@@ -90,3 +90,18 @@ CREATE TABLE IF NOT EXISTS waitlist (
   email TEXT NOT NULL UNIQUE,
   createdAt INTEGER NOT NULL
 );
+
+-- Freemium accounts: one row per email, with a credit balance.
+CREATE TABLE IF NOT EXISTS accounts (
+  email TEXT PRIMARY KEY,
+  credits INTEGER NOT NULL,
+  createdAt INTEGER NOT NULL,
+  lastSeen INTEGER NOT NULL
+);
+
+-- Magic-code auth: one active code per email (upserted), short-lived.
+CREATE TABLE IF NOT EXISTS auth_codes (
+  email TEXT PRIMARY KEY,
+  code TEXT NOT NULL,
+  expiresAt INTEGER NOT NULL
+);

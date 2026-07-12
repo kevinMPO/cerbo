@@ -279,6 +279,78 @@ export async function waitlistCount(db: D1Database) {
   return r?.n ?? 0;
 }
 
+// ---------- accounts / credits ----------
+export type Account = { email: string; credits: number; createdAt: number; lastSeen: number };
+
+export async function getAccount(db: D1Database, email: string): Promise<Account | null> {
+  return db
+    .prepare(`SELECT * FROM accounts WHERE email=?`)
+    .bind(email.trim().toLowerCase())
+    .first<Account>();
+}
+
+/** Get or create an account. New accounts start with `freeCredits`. */
+export async function getOrCreateAccount(
+  db: D1Database,
+  email: string,
+  freeCredits: number
+): Promise<{ account: Account; isNew: boolean }> {
+  const clean = email.trim().toLowerCase();
+  const existing = await getAccount(db, clean);
+  if (existing) {
+    await db.prepare(`UPDATE accounts SET lastSeen=? WHERE email=?`).bind(Date.now(), clean).run();
+    return { account: existing, isNew: false };
+  }
+  const now = Date.now();
+  await db
+    .prepare(`INSERT INTO accounts (email,credits,createdAt,lastSeen) VALUES (?,?,?,?)`)
+    .bind(clean, freeCredits, now, now)
+    .run();
+  return { account: { email: clean, credits: freeCredits, createdAt: now, lastSeen: now }, isNew: true };
+}
+
+/** Atomically spend 1 credit. Returns the new balance, or -1 if none left. */
+export async function spendCredit(db: D1Database, email: string): Promise<number> {
+  const clean = email.trim().toLowerCase();
+  const res = await db
+    .prepare(`UPDATE accounts SET credits=credits-1, lastSeen=? WHERE email=? AND credits>0`)
+    .bind(Date.now(), clean)
+    .run();
+  if (!res.meta.changes) return -1;
+  const a = await getAccount(db, clean);
+  return a?.credits ?? -1;
+}
+
+export async function addCredits(db: D1Database, email: string, n: number): Promise<number> {
+  const clean = email.trim().toLowerCase();
+  await db.prepare(`UPDATE accounts SET credits=credits+? WHERE email=?`).bind(n, clean).run();
+  const a = await getAccount(db, clean);
+  return a?.credits ?? 0;
+}
+
+// ---------- magic-code auth ----------
+export async function setAuthCode(db: D1Database, email: string, code: string, expiresAt: number) {
+  await db
+    .prepare(
+      `INSERT INTO auth_codes (email,code,expiresAt) VALUES (?,?,?)
+       ON CONFLICT(email) DO UPDATE SET code=excluded.code, expiresAt=excluded.expiresAt`
+    )
+    .bind(email.trim().toLowerCase(), code, expiresAt)
+    .run();
+}
+
+/** Returns true if the code matches and is unexpired; consumes it on success. */
+export async function consumeAuthCode(db: D1Database, email: string, code: string, now: number): Promise<boolean> {
+  const clean = email.trim().toLowerCase();
+  const row = await db
+    .prepare(`SELECT code,expiresAt FROM auth_codes WHERE email=?`)
+    .bind(clean)
+    .first<{ code: string; expiresAt: number }>();
+  if (!row || row.code !== code.trim() || row.expiresAt < now) return false;
+  await db.prepare(`DELETE FROM auth_codes WHERE email=?`).bind(clean).run();
+  return true;
+}
+
 // ---------- reset ----------
 export async function resetSession(db: D1Database, session: string) {
   for (const t of [

@@ -14,7 +14,11 @@ export interface Env {
   LINKUP_API_KEY?: string;
   ELEVENLABS_API_KEY?: string;
   ELEVENLABS_VOICE_ID?: string;
-  // Waitlist email notifications (Resend).
+  // Waitlist email notifications + magic-code auth (Resend).
   RESEND_API_KEY?: string;
   NOTIFY_EMAIL?: string;
+  MAIL_FROM?: string; // e.g. "CERBO <noreply@getcerbo.com>" once the domain is verified
+  FREE_CREDITS?: string; // free credits on signup (default 20)
+  // Apollo.io — company search (find companies when the user has no CSV).
+  APOLLO_API_KEY?: string;
 }

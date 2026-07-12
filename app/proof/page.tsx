@@ -37,6 +37,10 @@ export default function ProofPage() {
   const witnessed = (powerups ?? []).filter(
     (p) => scoredKeys.has(p.key) && p.status === "witnessed"
   ).length;
+  // Business-first outcomes — all computed live from D1, nothing hardcoded.
+  const qualified = (decisions ?? []).filter((d) => d.verdict === "qualified").length;
+  const rulesLearned = (skills ?? []).length;
+  const decisionsCount = (decisions ?? []).length;
 
   return (
     <AuthGate>
@@ -61,10 +65,10 @@ export default function ProofPage() {
         </div>
 
         <div className="mb-6 grid grid-cols-2 gap-2 sm:grid-cols-4">
-          <StatTile label="Power-ups vus" value={<Mono>{witnessed}/{POWERUPS.length}</Mono>} tone="accent" />
-          <StatTile label="Receipts Hermes" value={<Mono>{receipts?.length ?? "—"}</Mono>} />
-          <StatTile label="Coût réel cumulé" value={<Mono>{fmtUsd(totalCost)}</Mono>} />
-          <StatTile label="Waitlist" value={<Mono>{waitlist ?? "—"}</Mono>} sub="cross-track bonus" />
+          <StatTile label="Leads qualifiés" value={<Mono>{qualified}</Mono>} tone="accent" sub="décisions sourcées" />
+          <StatTile label="Règles apprises" value={<Mono>{rulesLearned}</Mono>} sub="corrections → skills" />
+          <StatTile label="Décisions tracées" value={<Mono>{decisionsCount}</Mono>} sub={`${witnessed}/${POWERUPS.length} power-ups · ${receipts?.length ?? 0} receipts`} />
+          <StatTile label="Coût réel cumulé" value={<Mono>{fmtUsd(totalCost)}</Mono>} sub="usage × tarif" />
         </div>
 
         <div className="mb-6">

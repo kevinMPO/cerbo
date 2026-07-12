@@ -54,11 +54,11 @@ export default function ProofPage() {
             <span className="num">08 / PREUVE</span>
             <span className="flex items-center gap-1.5">
               <LiveDot tone={ready ? "accent" : "muted"} />
-              {ready ? "Convex live" : "connexion…"}
+              {ready ? "Cloudflare D1 live" : "connexion…"}
             </span>
           </div>
           <h1 className="mt-1 text-2xl font-semibold tracking-tight text-offwhite">
-            Preuve — sourcée Convex, en direct
+            Preuve — sourcée Cloudflare D1, en direct
           </h1>
           <p className="mt-1 max-w-2xl text-sm text-muted">
             Tout ce que l'agent a fait, lu depuis la base temps réel. Rien n'est

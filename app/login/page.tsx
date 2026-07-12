@@ -61,8 +61,8 @@ function LoginInner() {
               Enter the operating system
             </h1>
             <p className="mt-1 text-[13px] text-muted">
-              The console runs the live agent pipeline and the Convex-sourced
-              proof ledger.
+              The console runs the live agent pipeline and the Cloudflare
+              D1-sourced proof ledger.
             </p>
 
             <form onSubmit={submit} className="mt-5 space-y-3">

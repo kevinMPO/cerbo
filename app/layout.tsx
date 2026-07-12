@@ -5,7 +5,7 @@ import { Providers } from "./providers";
 export const metadata: Metadata = {
   title: "CERBO — l'agent qui apprend en direct",
   description:
-    "Qualification de leads par un agent Hermes. Corrige-le à la voix ; la règle devient un skill persistant. Preuve sourcée Convex, en live.",
+    "Qualification de leads par un agent Hermes. Corrige-le à la voix ; la règle devient un skill persistant. Preuve sourcée Cloudflare D1, en live.",
 };
 
 export default function RootLayout({

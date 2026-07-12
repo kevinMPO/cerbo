@@ -16,6 +16,7 @@ import {
   X,
   VolumeX,
   Upload,
+  ArrowRight,
 } from "lucide-react";
 import { Nav } from "@/components/Nav";
 import {
@@ -129,6 +130,36 @@ export default function ProductPage() {
     }
   }
 
+  // A short "learned" chime (Web Audio, no asset) when the skill/fix lands.
+  function playChime() {
+    if (typeof window === "undefined") return;
+    try {
+      const Ctx = window.AudioContext || (window as any).webkitAudioContext;
+      if (!Ctx) return;
+      const ctx = new Ctx();
+      const t0 = ctx.currentTime;
+      [
+        [587.33, t0], // D5
+        [880.0, t0 + 0.11], // A5
+        [1174.66, t0 + 0.22], // D6
+      ].forEach(([f, t]) => {
+        const o = ctx.createOscillator();
+        const g = ctx.createGain();
+        o.type = "sine";
+        o.frequency.value = f as number;
+        const tt = t as number;
+        g.gain.setValueAtTime(0.0001, tt);
+        g.gain.exponentialRampToValueAtTime(0.16, tt + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.0001, tt + 0.4);
+        o.connect(g).connect(ctx.destination);
+        o.start(tt);
+        o.stop(tt + 0.45);
+      });
+    } catch {
+      /* ignore */
+    }
+  }
+
   const totals = useMemo(() => {
     const d = decisions ?? [];
     return {
@@ -179,6 +210,7 @@ export default function ProductPage() {
     playVoice("correct-v2");
     const r = await call("correct", { action: "run-v2" });
     setCorrectV2(r);
+    if (r.verdict === "qualified") playChime();
     toast.success("v2 : lead récupéré", { description: `${r.lead.company} → ${r.verdict} (${r.ruleCited})` });
   }
   async function runMemo() {
@@ -513,17 +545,32 @@ export default function ProductPage() {
           <div className="space-y-6">
             {correctV1 && correctV2 && (
               <motion.div
-                initial={{ opacity: 0, y: 6 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="flex flex-wrap items-center gap-3 rounded-xl border border-ok/30 bg-ok/[0.06] p-4"
+                initial={{ opacity: 0, scale: 0.96 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ type: "spring", stiffness: 200, damping: 18 }}
+                className="glow relative overflow-hidden rounded-2xl border border-ok/40 bg-ok/[0.06] p-5"
               >
-                <span className="text-[13px] font-medium text-offwhite">Atelier Nord</span>
-                <Badge tone="bad">rejeté · {correctV1.score}</Badge>
-                <span className="num text-faint">→</span>
-                <Badge tone="ok">qualifié · {correctV2.score}</Badge>
-                <span className="text-[13px] text-muted">
-                  récupéré après <b className="font-medium text-offwhite">une</b> correction vocale — sans ré-entraînement.
-                </span>
+                <div className="relative z-10 flex flex-wrap items-center justify-center gap-4 text-center sm:gap-8">
+                  <div className="flex flex-col items-center">
+                    <span className="text-[11px] uppercase tracking-wide text-faint">v1</span>
+                    <span className="num text-3xl font-semibold text-bad">rejeté · {correctV1.score}</span>
+                  </div>
+                  <motion.span
+                    animate={{ x: [0, 6, 0] }}
+                    transition={{ repeat: Infinity, duration: 1.4 }}
+                    className="text-accent"
+                  >
+                    <ArrowRight className="h-7 w-7" />
+                  </motion.span>
+                  <div className="flex flex-col items-center">
+                    <span className="text-[11px] uppercase tracking-wide text-faint">v2</span>
+                    <span className="num text-3xl font-semibold text-ok">qualifié · {correctV2.score}</span>
+                  </div>
+                </div>
+                <p className="relative z-10 mt-3 text-center text-[13px] text-muted">
+                  <b className="font-medium text-offwhite">Atelier Nord</b> récupéré après{" "}
+                  <b className="font-medium text-offwhite">une seule</b> correction vocale — corrigé une fois, jamais deux.
+                </p>
               </motion.div>
             )}
             <div>

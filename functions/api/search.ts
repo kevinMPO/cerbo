@@ -35,6 +35,23 @@ export const onRequestGet: PagesFunction<Env> = async (ctx) => {
     if (!res.ok) return json({ ok: false, error: `apollo ${res.status}` }, 502);
     const data: any = await res.json();
 
+    const ql = q.toLowerCase().replace(/\s+/g, "");
+    const qn = q.toLowerCase().trim();
+    // Rank canonical matches first: domain root == query, name starts with query,
+    // and prefer concise names (so "Doctolib" beats "Doctolib Connect / partner clinics").
+    const scoreOf = (r: { name: string; domain: string }) => {
+      const n = r.name.toLowerCase();
+      const root = (r.domain || "").split(".")[0]!;
+      let s = 0;
+      if (root === ql) s += 6;
+      else if (root.startsWith(ql)) s += 3;
+      if (n === qn) s += 5;
+      else if (n.startsWith(qn)) s += 2;
+      else if (n.includes(qn)) s += 1;
+      s -= Math.min(3, Math.floor(n.length / 25)); // penalize long/noisy names
+      return s;
+    };
+
     const seen = new Set<string>();
     const results = (data.organizations || [])
       .map((o: any) => ({
@@ -49,6 +66,7 @@ export const onRequestGet: PagesFunction<Env> = async (ctx) => {
         seen.add(key);
         return true;
       })
+      .sort((a: any, b: any) => scoreOf(b) - scoreOf(a))
       .slice(0, 6);
 
     return json({ ok: true, results });

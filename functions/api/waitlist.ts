@@ -2,6 +2,7 @@
 import type { Env } from "../../lib/env";
 import { json } from "../../lib/http";
 import { joinWaitlist, waitlistCount } from "../../lib/db";
+import { mailFrom } from "../../lib/authServer";
 
 export const onRequestGet: PagesFunction<Env> = async (ctx) => {
   try {
@@ -23,7 +24,7 @@ async function notify(env: Env, email: string, count: number) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: "CERBO <onboarding@resend.dev>",
+        from: mailFrom(env),
         to: [to],
         subject: `🎯 Nouvelle inscription waitlist CERBO — ${email}`,
         html: `<div style="font-family:system-ui,sans-serif;font-size:14px;color:#111">
